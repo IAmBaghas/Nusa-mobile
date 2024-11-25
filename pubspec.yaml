@@ -1,0 +1,48 @@
+name: sekolah_app
+description: A new Flutter project.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  cached_network_image: ^3.3.0
+  shared_preferences: ^2.2.2
+  google_fonts: ^6.1.0
+  table_calendar: ^3.0.9
+  flutter_svg: ^2.0.9
+  http: ^1.1.0
+  photo_view: ^0.14.0
+  url_launcher: ^6.2.2
+  image_picker: ^1.0.4
+  permission_handler: ^11.0.1
+  http_parser: ^4.0.2
+  image_cropper: ^5.0.1
+  timezone: ^0.9.2
+  connectivity_plus: ^5.0.2
+  html: 0.15.4
+  flutter_html: ^3.0.0-beta.2
+  flutter_secure_storage: ^9.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/Nusa_bg.svg"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/Nusa.svg"
