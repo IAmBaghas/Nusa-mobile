@@ -236,52 +236,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     });
   }
 
-  Widget _buildLatestComment(PostComment comment) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-            backgroundImage: comment.profileImage != null
-                ? CachedNetworkImageProvider(
-                    comment.getProfileImageUrl(),
-                    headers: const {
-                      'Accept': 'image/png,image/jpeg,image/jpg',
-                    },
-                  )
-                : null,
-            child: comment.profileImage == null
-                ? Icon(
-                    Icons.person,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  )
-                : null,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: Theme.of(context).textTheme.bodyMedium,
-                children: [
-                  TextSpan(
-                    text: comment.fullName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const TextSpan(text: ' '),
-                  TextSpan(text: comment.content),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -467,9 +421,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           });
                                         },
                                       ),
-                                      if (post.latestComment != null)
-                                        _buildLatestComment(
-                                            post.latestComment!),
                                     ],
                                   ),
                                 );

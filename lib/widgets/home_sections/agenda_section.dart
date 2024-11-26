@@ -12,10 +12,10 @@ class AgendaSection extends StatefulWidget {
   const AgendaSection({super.key});
 
   @override
-  State<AgendaSection> createState() => _AgendaSectionState();
+  State<AgendaSection> createState() => AgendaSectionState();
 }
 
-class _AgendaSectionState extends State<AgendaSection> {
+class AgendaSectionState extends State<AgendaSection> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isCalendarExpanded = false;
@@ -60,6 +60,10 @@ class _AgendaSectionState extends State<AgendaSection> {
         });
       }
     }
+  }
+
+  Future<void> loadData() async {
+    await _loadAgendas();
   }
 
   List<Agenda> get _upcomingAgendas {

@@ -17,10 +17,10 @@ class LatestArticlesSection extends StatefulWidget {
   const LatestArticlesSection({super.key});
 
   @override
-  State<LatestArticlesSection> createState() => _LatestArticlesSectionState();
+  State<LatestArticlesSection> createState() => LatestArticlesSectionState();
 }
 
-class _LatestArticlesSectionState extends State<LatestArticlesSection> {
+class LatestArticlesSectionState extends State<LatestArticlesSection> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   List<LatestArticle> _latestArticles = [];
@@ -166,6 +166,10 @@ class _LatestArticlesSectionState extends State<LatestArticlesSection> {
     } else {
       return 'Baru saja';
     }
+  }
+
+  Future<void> loadData() async {
+    await ArticleService().refreshArticles();
   }
 
   @override

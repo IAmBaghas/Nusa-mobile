@@ -135,30 +135,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Get posts with latest comments and counts
       final posts = await _siswaPostsService.getPostsByProfile(userId);
 
-      // Update comment counts for each post
-      final updatedPosts = await Future.wait(posts.map((post) async {
-        try {
-          final (latestComment, commentCount) =
-              await _commentService.getLatestComment(post.id);
-          return SiswaPost(
-            id: post.id,
-            profileId: post.profileId,
-            caption: post.caption,
-            images: post.images,
-            createdAt: post.createdAt,
-            likesCount: post.likesCount,
-            commentsCount: commentCount, // Use the actual count
-            isLiked: post.isLiked,
-            fullName: post.fullName,
-            profileImage: post.profileImage,
-            title: post.title,
-            latestComment: latestComment,
-          );
-        } catch (e) {
-          print('Error getting comment data for post ${post.id}: $e');
-          return post;
-        }
-      }));
+      // Since comments are removed, we'll set commentsCount to 0 and latestComment to null
+      final updatedPosts = posts.map((post) {
+        return SiswaPost(
+          id: post.id,
+          profileId: post.profileId,
+          caption: post.caption,
+          images: post.images,
+          createdAt: post.createdAt,
+          likesCount: post.likesCount,
+          commentsCount: 0, // Set to 0 since comments are removed
+          isLiked: post.isLiked,
+          fullName: post.fullName,
+          profileImage: post.profileImage,
+          title: post.title,
+          latestComment: null, // Set to null since comments are removed
+        );
+      }).toList();
 
       if (mounted) {
         setState(() {
@@ -331,6 +324,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _handleRefresh() async {
+    try {
+      if (!mounted) return;
+      
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      // Load user data from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final userDataString = prefs.getString('user_data');
+
+      if (userDataString != null) {
+        final userData = json.decode(userDataString);
+        if (!mounted) return;
+        
+        setState(() {
+          _userData = userData;
+          userId = userData['id'];
+        });
+
+        // Load posts
+        final posts = await _siswaPostsService.getPostsByProfile(userId);
+        
+        // Update posts with zero comments since comments are removed
+        final updatedPosts = posts.map((post) {
+          return SiswaPost(
+            id: post.id,
+            profileId: post.profileId,
+            caption: post.caption,
+            images: post.images,
+            createdAt: post.createdAt,
+            likesCount: post.likesCount,
+            commentsCount: 0,
+            isLiked: post.isLiked,
+            fullName: post.fullName,
+            profileImage: post.profileImage,
+            title: post.title,
+            latestComment: null,
+          );
+        }).toList();
+
+        if (!mounted) return;
+        setState(() {
+          _userPosts = updatedPosts;
+          _userMedia = updatedPosts.expand((post) {
+            return post.images.map((img) => img['file'] as String);
+          }).toList();
+          _isLoading = false;
+          _error = null;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() {
+          _error = 'User data not found';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error refreshing data: $e');
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -352,130 +414,176 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: DefaultTabController(
-        length: 2,
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    // Profile Image with Edit Button
-                    Stack(
-                      children: [
-                        GestureDetector(
-                          onTap: _updateProfileImage,
-                          child: Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  Theme.of(context).colorScheme.surfaceVariant,
-                            ),
-                            child: _isLoading
-                                ? const Center(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                : ClipOval(
-                                    child: _userData?['profile_image'] != null
-                                        ? CachedNetworkImage(
-                                            imageUrl:
-                                                '${Platform.isAndroid ? 'http://10.0.2.2:5000' : 'http://localhost:5000'}/uploads/profiles/${_userData!['id']}/${_userData!['profile_image']?.split('/').last ?? _userData!['profile_image']}',
-                                            fit: BoxFit.cover,
-                                            placeholder: (context, url) =>
-                                                const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            ),
-                                            errorWidget: (context, url, error) {
-                                              print(
-                                                  'Profile image error: $error');
-                                              print('URL: $url');
-                                              return Container(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .surfaceVariant,
-                                                child: Icon(
-                                                  Icons.person,
-                                                  size: 64,
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: DefaultTabController(
+          length: 2,
+          child: NestedScrollView(
+            physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      // Profile Image with Edit Button
+                      Stack(
+                        children: [
+                          GestureDetector(
+                            onTap: _updateProfileImage,
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    Theme.of(context).colorScheme.surfaceVariant,
+                              ),
+                              child: _isLoading
+                                  ? const Center(
+                                      child: CircularProgressIndicator(),
+                                    )
+                                  : ClipOval(
+                                      child: _userData?['profile_image'] != null
+                                          ? CachedNetworkImage(
+                                              imageUrl:
+                                                  '${Platform.isAndroid ? 'http://10.0.2.2:5000' : 'http://localhost:5000'}/uploads/profiles/${_userData!['id']}/${_userData!['profile_image']?.split('/').last ?? _userData!['profile_image']}',
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) =>
+                                                  const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                              errorWidget: (context, url, error) {
+                                                print(
+                                                    'Profile image error: $error');
+                                                print('URL: $url');
+                                                return Container(
                                                   color: Theme.of(context)
                                                       .colorScheme
-                                                      .onSurfaceVariant,
-                                                ),
-                                              );
-                                            },
-                                          )
-                                        : Icon(
-                                            Icons.person,
-                                            size: 64,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                  ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.edit,
-                              size: 20,
-                              color: Theme.of(context).colorScheme.onPrimary,
+                                                      .surfaceVariant,
+                                                  child: Icon(
+                                                    Icons.person,
+                                                    size: 64,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                                );
+                                              },
+                                            )
+                                          : Icon(
+                                              Icons.person,
+                                              size: 64,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                    ),
                             ),
                           ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.edit,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // User Info
+                      Text(
+                        _userData?['full_name'] ?? 'Loading...',
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // User Info
-                    Text(
-                      _userData?['full_name'] ?? 'Loading...',
-                      style: textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _userData?['email'] ?? '',
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 4),
+                      Text(
+                        _userData?['email'] ?? '',
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SliverAppBarDelegate(
-                  TabBar(
-                    tabs: const [
-                      Tab(text: 'Postingan'),
-                      Tab(text: 'Media'),
+                      const SizedBox(height: 24),
                     ],
-                    labelColor: colorScheme.primary,
-                    unselectedLabelColor: colorScheme.onSurfaceVariant,
-                    indicatorColor: colorScheme.primary,
                   ),
                 ),
-              ),
-            ];
-          },
-          body: TabBarView(
-            children: [
-              _buildPostsList(),
-              _buildMediaGrid(context),
-            ],
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SliverAppBarDelegate(
+                    TabBar(
+                      tabs: const [
+                        Tab(text: 'Postingan'),
+                        Tab(text: 'Media'),
+                      ],
+                      labelColor: colorScheme.primary,
+                      unselectedLabelColor: colorScheme.onSurfaceVariant,
+                      indicatorColor: colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ];
+            },
+            body: _error != null 
+                ? CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _error ?? 'Terjadi kesalahan',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: _handleRefresh,
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Coba Lagi'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Stack(
+                    children: [
+                      TabBarView(
+                        children: [
+                          _buildPostsList(),
+                          _buildMediaGrid(context),
+                        ],
+                      ),
+                      if (_isLoading)
+                        const Positioned.fill(
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -484,12 +592,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildPostsList() {
     if (_userPosts.isEmpty) {
-      return const Center(
-        child: Text('Belum ada postingan'),
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            child: Center(
+              child: Text('Belum ada postingan'),
+            ),
+          ),
+        ],
       );
     }
 
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       itemCount: _userPosts.length,
       separatorBuilder: (context, index) => const Divider(height: 32),
@@ -635,12 +751,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildMediaGrid(BuildContext context) {
     if (_userMedia.isEmpty) {
-      return const Center(
-        child: Text('Belum ada media'),
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            child: Center(
+              child: Text('Belum ada media'),
+            ),
+          ),
+        ],
       );
     }
 
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -692,52 +816,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildLatestComment(PostComment comment) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-            backgroundImage: comment.profileImage != null
-                ? CachedNetworkImageProvider(
-                    comment.getProfileImageUrl(),
-                    headers: const {
-                      'Accept': 'image/png,image/jpeg,image/jpg',
-                    },
-                  )
-                : null,
-            child: comment.profileImage == null
-                ? Icon(
-                    Icons.person,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  )
-                : null,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: Theme.of(context).textTheme.bodyMedium,
-                children: [
-                  TextSpan(
-                    text: comment.fullName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const TextSpan(text: ' '),
-                  TextSpan(text: comment.content),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

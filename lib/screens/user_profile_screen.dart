@@ -126,6 +126,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
+  Future<void> _handleRefresh() async {
+    try {
+      setState(() => _isLoading = true);
+      await _loadPosts();
+      setState(() => _isLoading = false);
+    } catch (e) {
+      print('Error refreshing data: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -134,51 +147,55 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         appBar: CustomAppBar(
           showLogo: false,
         ),
-        body: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    _buildProfileImage(),
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.userData['full_name'],
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SliverAppBarDelegate(
-                  TabBar(
-                    tabs: const [
-                      Tab(text: 'Postingan'),
-                      Tab(text: 'Media'),
+        body: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          child: NestedScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      _buildProfileImage(),
+                      const SizedBox(height: 16),
+                      Text(
+                        widget.userData['full_name'],
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                      ),
+                      const SizedBox(height: 24),
                     ],
-                    labelColor: Theme.of(context).colorScheme.primary,
-                    unselectedLabelColor:
-                        Theme.of(context).colorScheme.onSurfaceVariant,
-                    indicatorColor: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-              ),
-            ];
-          },
-          body: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : TabBarView(
-                  children: [
-                    _buildPostList(context),
-                    _buildMediaGrid(context),
-                  ],
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SliverAppBarDelegate(
+                    TabBar(
+                      tabs: const [
+                        Tab(text: 'Postingan'),
+                        Tab(text: 'Media'),
+                      ],
+                      labelColor: Theme.of(context).colorScheme.primary,
+                      unselectedLabelColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      indicatorColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                 ),
+              ];
+            },
+            body: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    children: [
+                      _buildPostList(context),
+                      _buildMediaGrid(context),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
@@ -186,12 +203,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _buildPostList(BuildContext context) {
     if (_userPosts.isEmpty) {
-      return const Center(
-        child: Text('Belum ada postingan'),
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            child: Center(
+              child: Text('Belum ada postingan'),
+            ),
+          ),
+        ],
       );
     }
 
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       itemCount: _userPosts.length,
       separatorBuilder: (context, index) => const Divider(height: 32),
@@ -310,12 +335,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _buildMediaGrid(BuildContext context) {
     if (_userMedia.isEmpty) {
-      return const Center(
-        child: Text('Belum ada media'),
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            child: Center(
+              child: Text('Belum ada media'),
+            ),
+          ),
+        ],
       );
     }
 
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,

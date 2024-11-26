@@ -13,10 +13,10 @@ class MainPagePostsSection extends StatefulWidget {
   const MainPagePostsSection({super.key});
 
   @override
-  State<MainPagePostsSection> createState() => _MainPagePostsSectionState();
+  State<MainPagePostsSection> createState() => MainPagePostsSectionState();
 }
 
-class _MainPagePostsSectionState extends State<MainPagePostsSection> {
+class MainPagePostsSectionState extends State<MainPagePostsSection> {
   final _siswaPostsService = SiswaPostsService();
   List<SiswaPost> _posts = [];
   bool _isLoading = true;
@@ -87,6 +87,10 @@ class _MainPagePostsSectionState extends State<MainPagePostsSection> {
         });
       }
     }
+  }
+
+  Future<void> loadData() async {
+    await _loadPosts();
   }
 
   @override
