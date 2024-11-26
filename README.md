@@ -1,16 +1,75 @@
-# sekolah_app
+# Nusa School Mobile App
 
-A new Flutter project.
+A Flutter-based mobile application for Nusa School that provides students, teachers, and parents with easy access to school information and resources.
 
-## Getting Started
+## 🌟 Features
 
-This project is a starting point for a Flutter application.
+### 👤 User Authentication
+- Secure login system
+- Role-based access (Student, Teacher, Parent)
+- Profile management
+- Password recovery
 
-A few resources to get you started if this is your first Flutter project:
+### 📱 Student Features
+- View school announcements
+- Access class schedules
+- Submit assignments
+- View grades and reports
+- Participate in school discussions
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### 📅 Event Management
+- View upcoming school events
+- Event notifications
+- Calendar integration
+- Event details and locations
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 📢 News & Updates
+- School news feed
+- Important announcements
+- Photo galleries
+- Achievement highlights
+
+### 🔔 Push Notifications
+- Real-time updates
+- Event reminders
+- Important announcements
+- Assignment deadlines
+
+## 🛠️ Technical Stack
+
+- **Framework**: Flutter
+- **State Management**: Provider/Bloc
+- **API Integration**: HTTP/Dio
+- **Local Storage**: SharedPreferences
+- **Push Notifications**: Firebase Cloud Messaging
+- **Image Handling**: cached_network_image
+- **Authentication**: JWT
+
+## 📱 Mobile-Specific Features
+
+### QR Code Integration
+- Quick access to school information
+- Event check-in
+- Digital ID cards
+
+### Offline Support
+- Cached content access
+- Offline data synchronization
+- Background updates
+
+### Device Integration
+- Camera access for profile photos
+- File upload for assignments
+- Calendar integration
+- Push notifications
+
+## 🔐 Security Features
+
+- Secure token storage
+- Biometric authentication support
+- SSL pinning
+- Data encryption
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
