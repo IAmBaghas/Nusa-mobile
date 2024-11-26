@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
-import 'main_screen.dart';
+// import 'main_screen.dart';
 import '../widgets/settings_sections/personal_info_modal.dart';
 import '../widgets/settings_sections/about_app_modal.dart';
 import 'notification_screen.dart';
@@ -60,7 +60,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    // final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'Pengaturan'),

@@ -11,9 +11,7 @@ import 'dart:async';
 import '../widgets/like_button.dart';
 import '../models/siswa_post.dart';
 import '../widgets/post_images_viewer.dart';
-import '../widgets/post_comment_section.dart';
 import '../services/event_bus_service.dart';
-import '../widgets/post_comment_modal.dart';
 import '../models/post_comment.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -25,6 +23,7 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   bool _isSearching = false;
+  // ignore: unused_field
   bool _isSearchingUsers = false;
   final TextEditingController _searchController = TextEditingController();
   final SiswaPostsService _siswaPostsService = SiswaPostsService();

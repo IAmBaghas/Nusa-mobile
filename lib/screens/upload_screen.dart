@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:permission_handler/permission_handler.dart';
 import '../widgets/custom_app_bar.dart';
 import '../services/siswa_posts_service.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:typed_data';
 import '../widgets/image_cropper_dialog.dart';
-import '../screens/profile_screen.dart';
 import '../screens/main_screen.dart';
 
 class UploadScreen extends StatefulWidget {

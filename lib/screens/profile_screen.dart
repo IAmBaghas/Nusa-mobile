@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
+// import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -21,7 +21,6 @@ import '../widgets/post_images_viewer.dart';
 import '../widgets/image_cropper_dialog.dart';
 import 'settings_screen.dart';
 import '../widgets/article_sections/image_viewer.dart';
-import 'upload_screen.dart';
 import '../services/event_bus_service.dart';
 import '../models/post_comment.dart';
 import '../services/post_comment_service.dart';
@@ -42,6 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _imagePicker = ImagePicker();
   List<SiswaPost> _userPosts = [];
   List<String> _userMedia = [];
+  // ignore: unused_field
   String? _error;
   late int userId;
   StreamSubscription? _postUpdateSubscription;
@@ -126,8 +126,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadPosts() async {
-    if (userId == null) return;
-
     try {
       setState(() {
         _isLoading = true;

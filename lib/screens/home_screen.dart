@@ -3,8 +3,6 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/home_sections/agenda_section.dart';
 import '../widgets/home_sections/latest_articles_section.dart';
 import '../widgets/home_sections/main_page_posts_section.dart';
-import 'explore_screen.dart';
-import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

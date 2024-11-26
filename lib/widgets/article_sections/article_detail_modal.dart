@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:ui' as ui;
+// import 'dart:ui' as ui;
 import '../../models/article.dart';
 import 'image_viewer.dart';
 

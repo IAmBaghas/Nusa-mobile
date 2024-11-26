@@ -64,7 +64,7 @@ class AuthService {
     if (token == null) return false;
 
     final requirePasswordChange = await isPasswordChangeRequired();
-    return token != null && !requirePasswordChange;
+    return !requirePasswordChange;
   }
 
   Future<bool> isPasswordChangeRequired() async {
