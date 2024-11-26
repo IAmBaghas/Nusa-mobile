@@ -35,6 +35,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _authService = AuthService();
   final _siswaPostsService = SiswaPostsService();
+  // ignore: unused_field
   final _commentService = PostCommentService();
   Map<String, dynamic>? _userData;
   bool _isLoading = true;
@@ -324,75 +325,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _handleRefresh() async {
-    try {
-      if (!mounted) return;
-      
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      // Load user data from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final userDataString = prefs.getString('user_data');
-
-      if (userDataString != null) {
-        final userData = json.decode(userDataString);
-        if (!mounted) return;
-        
-        setState(() {
-          _userData = userData;
-          userId = userData['id'];
-        });
-
-        // Load posts
-        final posts = await _siswaPostsService.getPostsByProfile(userId);
-        
-        // Update posts with zero comments since comments are removed
-        final updatedPosts = posts.map((post) {
-          return SiswaPost(
-            id: post.id,
-            profileId: post.profileId,
-            caption: post.caption,
-            images: post.images,
-            createdAt: post.createdAt,
-            likesCount: post.likesCount,
-            commentsCount: 0,
-            isLiked: post.isLiked,
-            fullName: post.fullName,
-            profileImage: post.profileImage,
-            title: post.title,
-            latestComment: null,
-          );
-        }).toList();
-
-        if (!mounted) return;
-        setState(() {
-          _userPosts = updatedPosts;
-          _userMedia = updatedPosts.expand((post) {
-            return post.images.map((img) => img['file'] as String);
-          }).toList();
-          _isLoading = false;
-          _error = null;
-        });
-      } else {
-        if (!mounted) return;
-        setState(() {
-          _error = 'User data not found';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Error refreshing data: $e');
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -415,11 +347,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _handleRefresh,
+        onRefresh: _loadUserData, // This will refresh both user data and posts
         child: DefaultTabController(
           length: 2,
           child: NestedScrollView(
-            physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 SliverToBoxAdapter(
@@ -537,36 +468,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ];
             },
             body: _error != null 
-                ? CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      SliverFillRemaining(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                size: 48,
-                                color: Colors.red,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                _error ?? 'Terjadi kesalahan',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: _handleRefresh,
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Coba Lagi'),
-                              ),
-                            ],
-                          ),
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.red,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        Text(
+                          _error ?? 'Terjadi kesalahan',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _loadUserData,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Coba Lagi'),
+                        ),
+                      ],
+                    ),
                   )
                 : Stack(
                     children: [
@@ -593,7 +517,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildPostsList() {
     if (_userPosts.isEmpty) {
       return CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh even when empty
         slivers: [
           SliverFillRemaining(
             child: Center(
@@ -605,7 +529,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh
       padding: const EdgeInsets.all(16),
       itemCount: _userPosts.length,
       separatorBuilder: (context, index) => const Divider(height: 32),
@@ -752,7 +676,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildMediaGrid(BuildContext context) {
     if (_userMedia.isEmpty) {
       return CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh even when empty
         slivers: [
           SliverFillRemaining(
             child: Center(
@@ -764,7 +688,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return GridView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
